@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Omnichannel SDK Only - Sampling Chat</title>
+  <script src="./lib/omnichannel-chat-sdk.bundle.js"></script> <!-- 수정한 SDK 로드 -->
+</head>
+<body>
+
+  <h1>Custom Chat (No WebChat)</h1>
+  <input type="text" id="messageInput" placeholder="메시지 입력" />
+  <button onclick="sendMessage()">Send</button>
+  <button onclick="getMessages()">GetMessage</button>
+
+  <div id="chatWindow" style="width:400px; height:600px; border:1px solid black; overflow-y:auto; margin-top:10px;"></div>
+
+  <script>
+    /*  채널 조직 정보 */
+    const omnichannelConfig = {
+      orgId: "22687c1b-09f0-ef11-933e-000d3a09149e",
+      widgetId: "40ff1cf6-2722-4115-9b65-cd7bfc006c2b",
+      orgUrl: "https://m-22687c1b-09f0-ef11-933e-000d3a09149e.as.omnichannelengagementhub.com"
+    };
+
+    /*
+      Dynamics 365 Omnichannel 서버에 설정된 "Data Masking Rules"
+      서버 설정 예시:
+        전화번호 찾는 정규식: \d{3}-\d{4}-\d{4}
+        이메일 찾는 정규식: [a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
+    */
+    const chatSDKConfig = { // Optional
+      dataMasking: {
+        disable: false,
+        maskingCharacter: '#'
+      }
+    };
+
+    const chatSDK = new OmnichannelChatSDK.OmnichannelChatSDK(omnichannelConfig, chatSDKConfig);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        await startChat();
+      } catch (e) {
+        console.error("채팅 시작 실패:", e);
+      }
+    });
+
+    async function startChat() {
+
+      await chatSDK.initialize(); //  chatSDK 초기화
+      
+      // const customContext = generateCustomContextFromBrowser();
+
+      const optionalParams = {
+        customContext: {
+          userId: { value: "USER1234", isDisplayable: true }
+        },
+        sendDefaultInitContext: true  
+      };
+      
+
+      await chatSDK.startChat(optionalParams);  //  Omnichannel 시작
+      // await chatSDK.getMessages();              //
+
+      /* Dynamics 365 Omnichannel 서버로 부터 전달 받은 메세지 */
+      chatSDK.onNewMessage((message) => {
+        if (message && message.content) {
+          displayMessage(message.content);
+        }
+      }, {rehydrate: true});
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('messageInput').value;
+      if (input.trim()) {
+        await chatSDK.sendMessage({ content: input });
+        document.getElementById('messageInput').value = '';
+        displayMessage(input);
+      }
+    }
+
+    function displayMessage(content) {
+      const chatWindow = document.getElementById('chatWindow');
+      const messageDiv = document.createElement('div');
+      messageDiv.textContent = content;
+      messageDiv.style.margin = "5px";
+      messageDiv.style.padding = "5px";
+      messageDiv.style.border = "1px solid gray";
+      chatWindow.appendChild(messageDiv);
+
+      chatWindow.scrollTop = chatWindow.scrollHeight; // 스크롤 자동 내리기
+    }
+
+    async function getMessages() {
+      const messages = await chatSDK.getMessages();
+      console.log(messages);
+    }
+
+    function generateCustomContextFromBrowser() {
+      const userAgent = navigator.userAgent;
+      const language = navigator.language || navigator.userLanguage;
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      return {
+        browser: {
+          value: userAgent,
+          isDisplayable: true
+        },
+        language: {
+          value: language,
+          isDisplayable: true
+        },
+        timezone: {
+          value: timezone,
+          isDisplayable: false
+        },
+        platform: {
+          value: navigator.platform,
+          isDisplayable: false
+        },
+        name : "LEE"
+      };
+    }
+  </script>
+
+</body>

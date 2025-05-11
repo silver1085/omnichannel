@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Custom SDK Test</title>
+  <script src="./lib/omnichannel-chat-sdk.bundle.js"></script> <!--수정된 SDK 직접 로드 -->
+  <script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script> <!-- WebChat 불러오기 -->
+</head>
+<body>
+  <h1>Omnichannel Chat Test</h1>
+  <button onclick="startChat()">Start Chat</button>
+
+  <div id="webchat" style="width:400px; height:600px;"></div> <!-- 채팅창 자리 -->  
+
+  <script>
+    
+    /*  채널 조직 정보 */
+    const omnichannelConfig = {
+      orgId: "22687c1b-09f0-ef11-933e-000d3a09149e",
+      widgetId: "40ff1cf6-2722-4115-9b65-cd7bfc006c2b",
+      orgUrl: "https://m-22687c1b-09f0-ef11-933e-000d3a09149e.as.omnichannelengagementhub.com"
+    };
+    
+    /*
+      Dynamics 365 Omnichannel 서버에 설정된 "Data Masking Rules"
+      서버 설정 예시:
+        전화번호 찾는 정규식: \d{3}-\d{4}-\d{4}
+        이메일 찾는 정규식: [a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
+    */
+    const chatSDKConfig = { // Optional
+        dataMasking: {
+            disable: false,
+            maskingCharacter: '#'
+        }
+    };
+
+    const chatSDK = new OmnichannelChatSDK.OmnichannelChatSDK(omnichannelConfig, chatSDKConfig);
+
+    async function startChat() {
+      
+      await chatSDK.initialize();      
+
+      await chatSDK.startChat();
+
+      const chatRequest = {}; // 기본값으로 시작
+      await chatSDK.startChat(chatRequest);
+
+      const adapter = await chatSDK.createChatAdapter();
+
+      window.WebChat.renderWebChat({
+        directLine: adapter, // adapter 연결
+      }, document.getElementById('webchat'))
+
+      adapter.activity$.subscribe((activity) => {
+          if (activity.type === 'message') {
+              console.log("💬 실시간 메시지:", activity);
+          }
+      });
+    }
+  </script>
+</body>
+</html>
+
