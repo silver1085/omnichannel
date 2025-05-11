@@ -22,7 +22,7 @@
     };
 
     /*
-      Dynamics 365 Omnichannel 서버에 설정된 "Data Masking Rules"ett esststsw
+      Dynamics 365 Omnichannel 서버에 설정된 "Data Masking Rules"ett esststsw ereer
       서버 설정 예시:
         전화번호 찾는 정규식: \d{3}-\d{4}-\d{4}
         이메일 찾는 정규식: [a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
@@ -47,16 +47,16 @@
     async function startChat() {
 
       await chatSDK.initialize(); //  chatSDK 초기화
-      
+
       // const customContext = generateCustomContextFromBrowser();
 
       const optionalParams = {
         customContext: {
           userId: { value: "USER1234", isDisplayable: true }
         },
-        sendDefaultInitContext: true  
+        sendDefaultInitContext: true
       };
-      
+
 
       await chatSDK.startChat(optionalParams);  //  Omnichannel 시작
       // await chatSDK.getMessages();              //
